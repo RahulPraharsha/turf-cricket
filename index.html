@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0f7b3a" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<!-- APP_BUILD_20261015_V4 -->
+<title>Cricket Turf Manager</title>
+<style>
+  :root{
+    --bg:#081028;
+    --bg2:#101a3a;
+    --card:#162149;
+    --card2:#1f2d5e;
+    --accent:#7c5cff;
+    --accent2:#22d3ee;
+    --warn:#fbbf24;
+    --danger:#ef4444;
+    --info:#38bdf8;
+    --text:#f1f5ff;
+    --muted:#a5b4fc;
+    --border:#2e3b6e;
+    --radius:18px;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  /* interactive polish */
+  .btn,.item,.stat,.chip,.card{transition:transform .15s ease, box-shadow .15s ease, filter .15s ease}
+  .btn:active{transform:scale(.95)}
+  .item:active,.stat:active{transform:scale(.98)}
+  .card:hover{box-shadow:0 12px 32px rgba(124,92,255,.25)}
+  .navbtn{transition:transform .15s ease;transform:scale(1)}
+  .navbtn:active{transform:scale(.9)}
+  *{touch-action:manipulation}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* App shell */
+  .app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;background:var(--bg);position:relative}
+  .topbar{
+    padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(180deg,var(--bg2),var(--bg));border-bottom:1px solid var(--border);
+    padding-top:calc(14px + env(safe-area-inset-top));
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#145a32);display:grid;place-items:center;font-size:18px;box-shadow:0 2px 8px rgba(46,204,113,.35)}
+  .brand h1{font-size:17px;font-weight:700;letter-spacing:.2px}
+  .brand p{font-size:11px;color:var(--muted);margin-top:1px}
+  .top-actions{display:flex;gap:8px}
+  .icon-btn{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:16px;display:grid;place-items:center;cursor:pointer}
+  .content{flex:1;overflow-y:auto;padding:14px 14px 90px;-webkit-overflow-scrolling:touch}
+  .bottomnav{
+    position:absolute;bottom:0;left:0;right:0;display:flex;background:rgba(18,38,26,.92);
+    backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border:none;background:transparent;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;border-radius:10px}
+  .navbtn .ic{font-size:20px}
+  .navbtn.active{color:var(--accent)}
+  .navbtn.active .ic{transform:scale(1.1)}
+  /* Cards */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+  .card h3{font-size:14px;margin-bottom:8px;color:var(--accent);font-weight:700}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:var(--card2);border-radius:12px;padding:12px;border:1px solid var(--border)}
+  .stat .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .stat .val{font-size:22px;font-weight:800;margin-top:4px}
+  .stat .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  /* Forms */
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+  .field input,.field select,.field textarea{
+    width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+    background:#0e2016;color:var(--text);font-size:15px;outline:none;transition:.15s border
+  }
+  .field input:focus,.field select:focus{border-color:var(--accent)}
+  #u,#p{ text-transform:none; ime-mode:disabled; }
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;transition:.15s transform, .15s opacity}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06240f;width:100%}
+  .btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-warn{background:var(--warn);color:#2b1a00}
+  .btn-sm{padding:6px 10px;font-size:12px;border-radius:8px}
+  .row{display:flex;gap:8px;align-items:center}
+  .row .btn{flex:1}
+  /* List items */
+  .item{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
+  .item .title{font-weight:700;font-size:14px}
+  .item .meta{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .item .actions{display:flex;gap:6px;margin-top:8px}
+  .chip{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-right:4px}
+  .chip.green{background:rgba(46,204,113,.18);color:var(--accent)}
+  .chip.blue{background:rgba(52,152,219,.18);color:var(--info)}
+  .chip.warn{background:rgba(243,156,18,.18);color:var(--warn)}
+  .chip.red{background:rgba(231,76,60,.18);color:var(--danger)}
+  /* Modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(2px)}
+  .modal-backdrop.show{display:flex}
+  .modal{width:100%;max-width:480px;background:var(--bg2);border-radius:20px 20px 0 0;padding:18px 16px calc(28px + env(safe-area-inset-bottom));max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--border);scroll-behavior:smooth}
+  .modal input,.modal select,.modal button{font-size:16px}
+  .modal h2{font-size:17px;margin-bottom:14px}
+  .modal .close{float:right;background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer}
+  /* Login */
+  .loginwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse at top,#16301f 0%,#0b1a12 70%)}
+  .loginbox{width:100%;max-width:360px}
+  .loginbox .logo{width:64px;height:64px;border-radius:18px;font-size:30px;margin:0 auto 16px}
+  .loginbox h2{text-align:center;font-size:22px;margin-bottom:4px}
+  .loginbox p{text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px}
+  .error{background:rgba(231,76,60,.15);border:1px solid var(--danger);color:#ffc9c3;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none}
+  .error.show{display:block}
+  /* Filter bar */
+  .filterbar{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+  .filterbar select{flex:1;min-width:120px}
+  /* Empty */
+  .empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:13px}
+  .empty .ic{font-size:40px;margin-bottom:8px}
+  /* notice */
+  .notice{font-size:12px;color:var(--muted);text-align:center;padding:8px}
+  .hidden{display:none !important}
+  /* Toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+  /* Responsive larger */
+  @media(min-width:600px){.app{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ================= Cricket Turf Manager =================
+   Mobile-first web app. Data persisted in localStorage.
+   Roles: "user" (3 seeded accounts) and "admin" (1 seeded account, hidden).
+*/
+const STORAGE_KEY = "ctm_data_v7";
+const SESSION_KEY = "ctm_session_v1";
+
+const TURFS = ["Turf A (Full)", "Turf B (Half)", "Turf C (Practice)"];
+const DRINK_ITEMS = ["Water Bottle","Energy Drink","Soft Drink","Juice","Tea/Coffee","ORS Sachet"];
+const DRINK_EMOJI = {"Water Bottle":"💧","Energy Drink":"⚡","Soft Drink":"🥤","Juice":"🧃","Tea/Coffee":"☕","ORS Sachet":"💊"};
+function drinkEmoji(name){ return DRINK_EMOJI[name] || "🥤"; }
+
+const DEFAULT_USERS = [
+  {id:"u1", username:"srinivasa", password:"Srinivasa@2003", name:"Srinivasa Rao", role:"user", mobile:"9876543210"},
+  {id:"u2", username:"varahala", password:"Varahala@2003", name:"Varahala Rao", role:"user", mobile:"9123456789"},
+  {id:"u3", username:"sathi", password:"Sathi@2003", name:"Sathi Babu", role:"user", mobile:"9988776655"},
+  {id:"a1", username:"rahul", password:"Rahul@2003", name:"Rahul", role:"admin", mobile:"9000000000"}
+];
+
+function loadData(){
+  // 1) try current version
+  let d=null;
+  try{ const r=localStorage.getItem(STORAGE_KEY); if(r) d=JSON.parse(r); }catch(e){}
+  // 2) try older versions and migrate
+  if(!d){
+    for(let ver=6;ver>=1;ver--){
+      try{ const r=localStorage.getItem("ctm_data_v"+ver); if(r){ d=JSON.parse(r); break; } }catch(e){}
+    }
+  }
+  if(d){
+    if(!Array.isArray(d.stockDrinks)) d.stockDrinks = DRINK_ITEMS.slice();
+    (d.bookings||[]).forEach(b=>{
+      if(typeof b.paid !== "number") b.paid = Number(b.advance)||0;
+      if(!Array.isArray(b.payments)) b.payments=[];
+    });
+    (d.users||[]).forEach(u=>{
+      if(u.id==="u1"){ u.username="srinivasa"; u.name="Srinivasa Rao"; u.password="Srinivasa@2003"; }
+      else if(u.id==="u2"){ u.username="varahala"; u.name="Varahala Rao"; u.password="Varahala@2003"; }
+      else if(u.id==="u3"){ u.username="sathi"; u.name="Sathi Babu"; u.password="Sathi@2003"; }
+      else if(u.id==="a1"){ u.username="rahul"; u.name="Rahul"; u.password="Rahul@2003"; }
+      if(!u.mobile){ if(u.id==="u1") u.mobile="9876543210"; else if(u.id==="u2") u.mobile="9123456789"; else if(u.id==="u3") u.mobile="9988776655"; else if(u.id==="a1") u.mobile="9000000000"; else u.mobile=""; }
+    });
+    saveData(d);
+    return d;
+  }
+  const seed = {users:DEFAULT_USERS, bookings:[], drinks:[], stockDrinks:DRINK_ITEMS.slice()};
+  // seed some sample bookings/drinks for demo
+  const today = todayISO();
+  const yd=new Date(); yd.setDate(yd.getDate()-1);
+  const yday = yd.getFullYear()+"-"+String(yd.getMonth()+1).padStart(2,"0")+"-"+String(yd.getDate()).padStart(2,"0");
+  seed.bookings = [
+    {id:"b1",date:today,time:"06:00-07:00",customer:"Vikram",contact:"9876543210",turf:TURFS[0],amount:1200,status:"booked",paid:500,payments:[{id:"p1",date:today,amount:500,method:"Online",type:"advance",createdBy:"u1",createdByName:"Srinivasa Rao"}],createdBy:"u1",createdByName:"Srinivasa Rao",createdByUsername:"srinivasa",createdAt:Date.now()-100000},
+    {id:"b2",date:today,time:"18:00-19:00",customer:"Priya FC",contact:"9123456780",turf:TURFS[1],amount:800,status:"booked",paid:0,payments:[],createdBy:"u2",createdByName:"Varahala Rao",createdByUsername:"varahala",createdAt:Date.now()-50000},
+    {id:"b3",date:yday,time:"07:00-08:00",customer:"Sunday League",contact:"9999999999",turf:TURFS[0],amount:1500,status:"completed",paid:1500,payments:[{id:"p2",date:yday,amount:1500,method:"Cash",type:"full",createdBy:"u3",createdByName:"Sathi Babu"}],createdBy:"u3",createdByName:"Sathi Babu",createdByUsername:"sathi",createdAt:Date.now()-200000},
+  ];
+  seed.drinks = [
+    {id:"d1",date:today,item:"Water Bottle",qty:12,price:20,total:240,createdBy:"u1",createdByName:"Srinivasa Rao",createdByUsername:"srinivasa",createdAt:Date.now()-90000},
+    {id:"d2",date:today,item:"Energy Drink",qty:5,price:80,total:400,createdBy:"u2",createdByName:"Varahala Rao",createdByUsername:"varahala",createdAt:Date.now()-60000},
+    {id:"d3",date:yday,item:"Soft Drink",qty:8,price:40,total:320,createdBy:"u3",createdByName:"Sathi Babu",createdByUsername:"sathi",createdAt:Date.now()-180000},
+  ];
+  saveData(seed);
+  return seed;
+}
+function saveData(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+function getSession(){ try{return JSON.parse(localStorage.getItem(SESSION_KEY));}catch(e){return null;} }
+function setSession(u){ localStorage.setItem(SESSION_KEY, JSON.stringify({userId:u.id,loginAt:Date.now()})); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+let DATA = loadData();
+let SESSION = getSession();
+let CURRENT_USER = SESSION ? DATA.users.find(u=>u.id===SESSION.userId) : null;
+
+function isAdmin(){ return CURRENT_USER && CURRENT_USER.role==="admin"; }
+function userNameById(id, fallback){
+  const u = (DATA.users||[]).find(x=>x.id===id);
+  if(u) return u.name || u.username || fallback || id || "Unknown";
+  return fallback || id || "Unknown";
+}
+function passwordInUse(pw, excludeId){
+  return (DATA.users||[]).some(u=>u.id!==excludeId && u.password===pw);
+}
+
+// ---------- Utilities ----------
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>[...root.querySelectorAll(sel)];
+const uid = (p="id")=> p+"_"+Math.random().toString(36).slice(2,9)+Date.now().toString(36);
+function fmtDate(iso){ if(!iso)return""; const d=new Date(iso+"T00:00:00"); return d.toLocaleDateString(undefined,{weekday:"short",day:"2-digit",month:"short",year:"numeric"}); }
+function fmtMoney(n){ return "₹"+Number(n||0).toLocaleString("en-IN"); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function allDates(){ const s=new Set(); DATA.bookings.forEach(b=>s.add(b.date)); DATA.drinks.forEach(d=>s.add(d.date)); s.add(todayISO()); return [...s].sort().reverse(); }
+
+// ---------- Toast ----------
+function toast(msg,kind="info"){
+  let t=document.createElement("div");
+  t.textContent=msg;
+  t.style.cssText=`position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:${kind==="err"?"#e74c3c":kind==="ok"?"#2ecc71":"#34495e"};color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;z-index:100;box-shadow:0 8px 20px rgba(0,0,0,.4);opacity:0;transition:.2s`;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.style.opacity="1");
+  setTimeout(()=>{t.style.opacity="0";setTimeout(()=>t.remove(),200);},2200);
+}
+
+// ---------- Time slot parsing / overlap ----------
+function toMinutesTime(h,m,ampm){
+  let hour=parseInt(h,10); if(isNaN(hour)) return null;
+  let min=m?parseInt(m,10):0; if(isNaN(min)) return null;
+  if(ampm){
+    ampm=ampm.toLowerCase();
+    if(ampm==="pm" && hour<12) hour+=12;
+    if(ampm==="am" && hour===12) hour=0;
+  }
+  if(hour<0||hour>23||min<0||min>59) return null;
+  return hour*60+min;
+}
+function parseTimeSlot(str){
+  if(!str) return null;
+  const s=str.trim().replace(/\s+/g," ");
+  // normalize separators: "to" between times
+  const m=s.match(/^(.+?)\s*(?:-|–|—|to)\s*(.+)$/i);
+  if(!m) return null;
+  // extract time tokens
+  const parseToken=(tok)=>{
+    const mm=tok.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+    if(!mm) return null;
+    return toMinutesTime(mm[1],mm[2],mm[3]);
+  };
+  const a=parseToken(m[1]), b=parseToken(m[2]);
+  if(a==null || b==null) return null;
+  let end=b;
+  if(end<=a) end+=1440; // overnight
+  if(end<=a) return null;
+  return {start:a,end:end};
+}
+function slotsOverlap(a,b){
+  if(!a||!b) return false;
+  return a.start < b.end && b.start < a.end;
+}
+
+// ---------- Auto-complete bookings by time ----------
+function slotEndTimestamp(b){
+  if(!b || !b.date) return null;
+  const base=new Date(b.date+"T00:00:00").getTime();
+  const slot=parseTimeSlot(b.time);
+  if(!slot) return null;
+  return base + slot.end*60000;
+}
+function autoCompleteBookings(){
+  let changed=false;
+  const now=Date.now();
+  (DATA.bookings||[]).forEach(b=>{
+    if(b.status==="booked"){
+      const end=slotEndTimestamp(b);
+      if(end!==null && end<=now){ b.status="completed"; changed=true; }
+    }
+  });
+  if(changed) saveData(DATA);
+}
+
+// ---------- View router ----------
+const VIEWS = ["home","bookings","drinks","manage"];
+let currentView="home";
+function showView(v){
+  if(v==="manage" && !isAdmin()){ v="home"; }
+  currentView=v;
+  render();
+  $$(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
+}
+// ---------- Modal ----------
+function openModal(html){
+  const bd=$("#modalBackdrop"),md=$("#modal");
+  md.innerHTML=html;
+  bd.classList.add("show");
+  setTimeout(()=>{ document.querySelectorAll(".modal input,.modal select").forEach(el=>el.addEventListener("focus",()=>{ setTimeout(()=>el.scrollIntoView({block:"center",behavior:"smooth"}),150); })); },30);
+}
+function closeModal(){ $("#modalBackdrop").classList.remove("show"); }
+
+// ---------- Render app shell ----------
+function renderShell(){
+  const root=$("#root");
+  if(!CURRENT_USER){
+    root.innerHTML = loginHTML();
+    bindLogin();
+    return;
+  }
+  root.innerHTML = `
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">🏏</div>
+          <div><h1>Cricket Turf</h1><p>Booking & Drinks Manager</p></div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" id="changePwBtn" title="Change password">🔑</button>
+      <button class="icon-btn" id="logoutBtn" title="Logout">⏻</button>
+        </div>
+      </div>
+      <div class="content" id="content"></div>
+      <nav class="bottomnav">
+        <button class="navbtn ${currentView==="home"?"active":""}" data-view="home"><span class="ic">🏠</span>Home</button>
+        <button class="navbtn ${currentView==="bookings"?"active":""}" data-view="bookings"><span class="ic">📅</span>Bookings</button>
+        <button class="navbtn ${currentView==="drinks"?"active":""}" data-view="drinks"><span class="ic">🥤</span>Drinks</button>
+        ${isAdmin()?`<button class="navbtn ${currentView==="manage"?"active":""}" data-view="manage"><span class="ic">⚙️</span>Manage</button>`:""}
+      </nav>
+      <div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modal"></div></div>
+    </div>`;
+  $("#logoutBtn").onclick=()=>{ clearSession(); CURRENT_USER=null; currentView="home"; render(); };
+  const cpw=$("#changePwBtn"); if(cpw) cpw.onclick=openChangePasswordForm;
+  $$(".navbtn").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+  $("#modalBackdrop").onclick=(e)=>{ if(e.target.id==="modalBackdrop") closeModal(); };
+  autoCompleteBookings();
+  renderContent();
+}
+function render(){ renderShell(); }
+
+function renderContent(){
+  const c=$("#content");
+  if(!c) return;
+  autoCompleteBookings();
+  switch(currentView){
+    case "home": c.innerHTML=homeHTML(); bindHome(); break;
+    case "bookings": c.innerHTML=bookingsHTML(); bindBookings(); break;
+    case "drinks": c.innerHTML=drinksHTML(); bindDrinks(); break;
+    case "manage": c.innerHTML=manageHTML(); bindManage(); break;
+  }
+}
+
+// ---------- Login ----------
+function loginHTML(){
+  return `<div class="loginwrap">
+    <div class="loginbox">
+      <div class="logo">🏏</div>
+      <h2>Welcome</h2>
+      <p>Sign in to manage bookings & stock</p>
+      <div class="error" id="loginErr"></div>
+      <div class="field"><label>Username</label><input id="u" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" placeholder="username"/></div>
+      <div class="field"><label>Password</label><input id="p" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="password"/></div>
+      <button class="btn btn-primary" id="loginBtn">Sign In</button>
+      <p class="notice">Need help? Check the README for demo credentials.</p>
+    </div>
+  </div>`;
+}
+function bindLogin(){
+  const doLogin=()=>{
+    const u=$("#u").value.trim().toLowerCase();
+    const p=$("#p").value.trim();
+    const DEMO_LOGIN = [
+      {id:"u1", aliases:["srinivasa","rahul"], passwords:["Srinivasa@2003","1234"]},
+      {id:"u2", aliases:["varahala","amit"], passwords:["Varahala@2003","1234"]},
+      {id:"u3", aliases:["sathi","sneha"], passwords:["Sathi@2003","1234"]},
+      {id:"a1", aliases:["rahul","admin"], passwords:["Rahul@2003","admin123"]}
+    ];
+    let user = DATA.users.find(x => x.username.toLowerCase()===u && x.password===p);
+    if(!user){
+      const demo = DEMO_LOGIN.find(d => d.aliases.includes(u) && d.passwords.includes(p));
+      if(demo){
+        user = DATA.users.find(x=>x.id===demo.id);
+        if(user){
+          // current expected credentials for that account
+          if(demo.id==="u1"){ user.username="srinivasa"; user.password="Srinivasa@2003"; }
+          else if(demo.id==="u2"){ user.username="varahala"; user.password="Varahala@2003"; }
+          else if(demo.id==="u3"){ user.username="sathi"; user.password="Sathi@2003"; }
+          else if(demo.id==="a1"){ user.username="rahul"; user.password="Rahul@2003"; }
+          saveData(DATA);
+        }
+      }
+    }
+    const err=$("#loginErr");
+    if(!user){ err.textContent="Invalid username or password. Check spelling/case. Usernames: srinivasa, varahala, sathi, rahul (also legacy aliases)."; err.classList.add("show"); return; }
+    err.classList.remove("show");
+    CURRENT_USER=user; setSession(user);
+    currentView="home";
+    render();
+  };
+  $("#loginBtn").onclick=doLogin;
+  $("#p").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+}
+
+// ---------- Home ----------
+function homeHTML(){
+  const tod=todayISO();
+  const todayBookings=DATA.bookings.filter(b=>b.date===tod);
+  const todayDrinks=DATA.drinks.filter(d=>d.date===tod);
+  const drinksTotal=todayDrinks.reduce((a,d)=>a+d.total,0);
+  const bookingsTotal=todayBookings.reduce((a,b)=>a+(b.amount||0),0);
+  const recent=[...DATA.bookings].sort((a,b)=>b.createdAt-a.createdAt).slice(0,3);
+  return `
+  <div class="card">
+    <h3>👋 Hi, ${esc(CURRENT_USER.name)}</h3>
+    <p style="font-size:13px;color:var(--muted)">${new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p>
+  </div>
+  <div class="grid2">
+    <div class="stat"><div class="label">Today's Bookings</div><div class="val">${todayBookings.length}</div><div class="sub">${fmtMoney(bookingsTotal)}</div></div>
+    <div class="stat"><div class="label">Today's Drinks</div><div class="val">${todayDrinks.reduce((a,d)=>a+d.qty,0)}</div><div class="sub">${fmtMoney(drinksTotal)}</div></div>
+    <div class="stat"><div class="label">All Bookings</div><div class="val">${DATA.bookings.length}</div><div class="sub">records</div></div>
+    <div class="stat"><div class="label">All Drink Sales</div><div class="val">${DATA.drinks.length}</div><div class="sub">${fmtMoney(DATA.drinks.reduce((a,d)=>a+d.total,0))}</div></div>
+  </div>
+  <div class="card">
+    <h3>Quick Actions</h3>
+    <div class="row">
+      <button class="btn btn-primary" id="qaBooking">＋ Add Booking</button>
+      <button class="btn btn-secondary" id="qaDrink">＋ Add Drink Sale</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Recent Bookings</h3>
+    ${recent.length?recent.map(b=>bookingItemHTML(b)).join(""):`<div class="empty"><div class="ic">📅</div>No bookings yet</div>`}
+  </div>`;
+}
+function bindHome(){
+  $("#qaBooking")?.addEventListener("click",()=>{ currentView="bookings"; render(); setTimeout(()=>openBookingForm(),50); });
+  $("#qaDrink")?.addEventListener("click",()=>{ currentView="drinks"; render(); setTimeout(()=>openDrinkForm(),50); });
+}
+
+// ---------- Bookings ----------
+function bookingItemHTML(b){
+  const statusChip = b.status==="completed"?"green":b.status==="cancelled"?"red":"blue";
+  const amount=Number(b.amount)||0;
+  const paid=Number(b.paid)||0;
+  const balance=amount-paid;
+  const payChip = balance<=0 ? `<span class="chip green">Paid</span>` : (paid>0 ? `<span class="chip warn">Advance</span>` : `<span class="chip red">Unpaid</span>`);
+  const payBtn = balance>0 ? `<button class="btn btn-secondary btn-sm" data-pay-booking="${b.id}">💳 Pay</button>` : "";
+  const actions = isAdmin() ? `
+    ${payBtn}
+    <button class="btn btn-secondary btn-sm" data-edit-booking="${b.id}">✏️ Edit</button>
+    <button class="btn btn-danger btn-sm" data-del-booking="${b.id}">🗑 Delete</button>` : payBtn;
+  return `<div class="item" data-bid="${b.id}">
+    <div class="title">${esc(b.customer)} <span class="chip ${statusChip}">${esc(b.status)}</span> ${payChip}</div>
+    <div class="meta">
+      📆 ${esc(fmtDate(b.date))} • ⏰ ${esc(b.time)}<br/>
+      🏟 ${esc(b.turf)} • Recorded by: ${esc(b.createdByName || userNameById(b.createdBy,b.createdByName))}<br/>
+      📞 ${esc(b.contact)}<br/>
+      💰 Total ${esc(fmtMoney(amount))} • Paid ${esc(fmtMoney(paid))} • Balance ${esc(fmtMoney(balance))}
+    </div>
+    ${actions?`<div class="actions">${actions}</div>`:""}
+  </div>`;
+}
+function bookingsHTML(){
+  const dates=allDates();
+  const filter=window._bDateFilter||"all";
+  let list=[...DATA.bookings].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt);
+  if(filter!=="all") list=list.filter(b=>b.date===filter);
+  const rev=list.reduce((a,b)=>a+(Number(b.amount)||0),0);
+  const collected=list.reduce((a,b)=>a+(Number(b.paid)||0),0);
+  const pending=rev-collected;
+  return `
+  <div class="row" style="margin-bottom:10px">
+    <button class="btn btn-primary" id="addBookingBtn">＋ Add Booking</button>
+  </div>
+  <div class="grid2" style="margin-bottom:10px">
+    <div class="stat"><div class="label">Slots</div><div class="val">${list.length}</div></div>
+    <div class="stat"><div class="label">Revenue</div><div class="val">${fmtMoney(rev)}</div><div class="sub">filtered</div></div>
+    <div class="stat"><div class="label">Collected</div><div class="val">${fmtMoney(collected)}</div></div>
+    <div class="stat"><div class="label">Pending</div><div class="val">${fmtMoney(pending)}</div></div>
+  </div>
+  <div class="filterbar">
+    <select id="bFilter">${dates.map(d=>`<option value="${d}" ${d===filter?"selected":""}>${fmtDate(d)}${d===todayISO()?" (today)":""}</option>`).join("")}
+      <option value="all" ${filter==="all"?"selected":""}>All dates</option>
+    </select>
+  </div>
+  <div id="bookingList">
+    ${list.length?list.map(bookingItemHTML).join(""):`<div class="empty"><div class="ic">📅</div>No bookings for this filter</div>`}
+  </div>`;
+}
+function bindBookings(){
+  $("#addBookingBtn").onclick=openBookingForm;
+  $("#bFilter").onchange=(e)=>{ window._bDateFilter=e.target.value; renderContent(); };
+  $$("[data-edit-booking]").forEach(b=>b.onclick=()=>openBookingForm(b.dataset.editBooking));
+  $$("[data-del-booking]").forEach(b=>b.onclick=()=>deleteBooking(b.dataset.delBooking));
+  $$("[data-pay-booking]").forEach(b=>b.onclick=()=>openPaymentForm(b.dataset.payBooking));
+}
+function openPaymentForm(bookingId){
+  const b=DATA.bookings.find(x=>x.id===bookingId);
+  if(!b){ toast("Booking not found","err"); return; }
+  const amount=Number(b.amount)||0;
+  const paid=Number(b.paid)||0;
+  const balance=amount-paid;
+  if(balance<=0){ toast("No balance pending","info"); return; }
+  openModal(`
+    <button class="close" onclick="closeModal()">×</button>
+    <h2>Record Payment • ${esc(b.customer)}</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Total ${esc(fmtMoney(amount))} • Paid ${esc(fmtMoney(paid))} • <b>Balance ${esc(fmtMoney(balance))}</b></p>
+    <div class="field"><label>Payment amount (₹) *</label><input type="number" id="pf_amt" value="${balance}" placeholder="0" min="1"/></div>
+    <div class="field"><label>Payment type</label><select id="pf_type"><option value="advance">Advance</option><option value="balance">Balance</option><option value="full">Full/Other</option></select></div>
+    <div class="field"><label>Method (offline only)</label><select id="pf_method"><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select></div>
+    <div class="field"><label>Reference / receipt (optional)</label><input id="pf_ref" placeholder="receipt id / note"/></div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="pf_save">Record Payment</button>
+    </div>
+  `);
+  $("#pf_save").onclick=()=>{
+    const amt=Number($("#pf_amt").value)||0;
+    const type=$("#pf_type").value;
+    const method=$("#pf_method").value;
+    const ref=$("#pf_ref").value.trim();
+    if(amt<=0){ toast("Payment amount must be greater than 0","err"); return; }
+    if(amt>balance){ toast("Payment cannot exceed balance due ("+fmtMoney(balance)+")","err"); return; }
+    b.paid=(Number(b.paid)||0)+amt;
+    if(!Array.isArray(b.payments)) b.payments=[];
+    b.payments.push({id:uid("p"),date:todayISO(),amount:amt,method,type,note:ref,createdBy:CURRENT_USER.id,createdByName:CURRENT_USER.name});
+    saveData(DATA);
+    toast("Payment recorded","ok");
+    closeModal();
+    renderContent();
+  };
+}
+function openBookingForm(editId=null){
+  const b = editId ? DATA.bookings.find(x=>x.id===editId) : null;
+  openModal(`
+    <button class="close" onclick="closeModal()">×</button>
+    <h2>${b?"Edit Booking":"New Booking"}</h2>
+    <div class="field"><label>Date</label><input type="date" id="bf_date" value="${b?b.date:todayISO()}"/></div>
+    <div class="field"><label>Time slot</label><input id="bf_time" value="${b?esc(b.time):""}" placeholder="e.g. 18:00-19:00"/></div>
+    <div class="field"><label>Customer name</label><input id="bf_cust" value="${b?esc(b.customer):""}" placeholder="Name / team"/></div>
+    <div class="field"><label>Contact (mandatory, 10 digits)</label><input id="bf_contact" value="${b?esc(b.contact):""}" placeholder="Mobile number" required/></div>
+    <div class="field"><label>Turf</label><select id="bf_turf">${TURFS.map(t=>`<option ${b&&b.turf===t?"selected":""}>${t}</option>`).join("")}</select></div>
+    <div class="field"><label>Amount (₹) (mandatory)</label><input type="number" id="bf_amt" value="${b?b.amount:""}" placeholder="Total amount" min="1" required/></div>
+    ${!b?`<div class="field"><label>Advance paid now (₹) (optional)</label><input type="number" id="bf_advance" value="0" placeholder="0" min="0"/></div>`:""}
+    ${b && isAdmin()?`<div class="field"><label>Paid so far (₹) (admin)</label><input type="number" id="bf_paid" value="${Number(b.paid)||0}" placeholder="0" min="0"/></div>`:""}
+    <div class="field"><label>Status</label><select id="bf_status">${["booked","completed","cancelled"].map(s=>`<option value="${s}" ${b&&b.status===s?"selected":""}>${s}</option>`).join("")}</select></div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="bf_save">Save</button>
+    </div>
+  `);
+  $("#bf_save").onclick=()=>{
+    const rec={
+      date:$("#bf_date").value,
+      time:$("#bf_time").value.trim(),
+      customer:$("#bf_cust").value.trim(),
+      contact:$("#bf_contact").value.trim(),
+      turf:$("#bf_turf").value,
+      amount:Number($("#bf_amt").value)||0,
+      status:$("#bf_status").value,
+    };
+    if(!rec.date||!rec.customer){ toast("Date and customer are required","err"); return; }
+    if(!rec.contact || !/^\d{10,}$/.test(rec.contact)){ toast("Valid 10-digit mobile number is required","err"); return; }
+    if(!rec.amount || rec.amount<=0){ toast("Booking amount is required","err"); return; }
+    if(!rec.time) rec.time="—";
+    const newSlot=parseTimeSlot(rec.time);
+    if(newSlot){
+      const conflict=DATA.bookings.find(x=>{
+        if(b && x.id===b.id) return false;
+        if(x.date!==rec.date) return false;
+        if(x.turf!==rec.turf) return false;
+        return slotsOverlap(newSlot, parseTimeSlot(x.time));
+      });
+      if(conflict){ toast("Slot overlaps with existing booking ("+conflict.time+") on "+rec.turf,"err"); return; }
+    }
+    if(b){
+      if(!isAdmin()){ toast("Only admin can edit","err"); return; }
+      const oldPaid=Number(b.paid)||0;
+      Object.assign(b,rec); b.updatedAt=Date.now();
+      if(isAdmin() && $("#bf_paid")){
+        const newPaid=Number($("#bf_paid").value);
+        if(!isNaN(newPaid)) b.paid=Math.min(newPaid, rec.amount);
+      } else {
+        if(b.paid>rec.amount) b.paid=rec.amount;
+      }
+      if(b.paid<0) b.paid=0;
+      toast("Booking updated","ok");
+    } else {
+      const advance=Number($("#bf_advance").value)||0;
+      if(advance<0 || advance>rec.amount){ toast("Advance must be between 0 and total amount","err"); return; }
+      const payments = advance>0 ? [{id:uid("p"),date:todayISO(),amount:advance,method:"Advance",type:"advance",note:"Advance paid at booking",createdBy:CURRENT_USER.id,createdByName:CURRENT_USER.name}] : [];
+      DATA.bookings.push({id:uid("b"),...rec,createdBy:CURRENT_USER.id,createdByName:CURRENT_USER.name,createdByUsername:CURRENT_USER.username,paid:advance,payments,createdAt:Date.now()});
+      toast("Booking added","ok");
+    }
+    saveData(DATA);
+    closeModal();
+    renderContent();
+  };
+}
+function deleteBooking(id){
+  if(!isAdmin()){ toast("Only admin can delete","err"); return; }
+  if(!confirm("Delete this booking?")) return;
+  DATA.bookings=DATA.bookings.filter(b=>b.id!==id);
+  saveData(DATA);
+  toast("Booking deleted","ok");
+  renderContent();
+}
+
+// ---------- Drinks ----------
+function drinkItemHTML(d){
+  const creator = d.createdByName || userNameById(d.createdBy,d.createdByName);
+  const actions = isAdmin() ? `
+    <button class="btn btn-secondary btn-sm" data-edit-drink="${d.id}">✏️ Edit</button>
+    <button class="btn btn-danger btn-sm" data-del-drink="${d.id}">🗑 Delete</button>` : "";
+  return `<div class="item">
+    <div class="title">${drinkEmoji(d.item)} ${esc(d.item)} <span class="chip blue">${d.qty} pcs</span></div>
+    <div class="meta">
+      📆 ${esc(fmtDate(d.date))}<br/>
+      💵 ${esc(fmtMoney(d.price))} each • Total ${esc(fmtMoney(d.total))}<br/>
+      👤 ${esc(creator)}
+    </div>
+    ${actions?`<div class="actions">${actions}</div>`:""}
+  </div>`;
+}
+function drinksHTML(){
+  const dates=allDates();
+  const filter=window._dDateFilter||"all";
+  let list=[...DATA.drinks].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt);
+  if(filter!=="all") list=list.filter(d=>d.date===filter);
+  const total=list.reduce((a,d)=>a+d.total,0);
+  const qty=list.reduce((a,d)=>a+d.qty,0);
+  return `
+  <div style="margin-bottom:10px;border-radius:16px;overflow:hidden;position:relative;height:150px;background:linear-gradient(135deg,#22d3ee,#7c5cff)">
+    <svg viewBox="0 0 320 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+      <circle cx="60" cy="90" r="28" fill="#fff" opacity=".2"/>
+      <circle cx="110" cy="110" r="20" fill="#fff" opacity=".15"/>
+      <rect x="150" y="40" width="40" height="70" rx="8" fill="#fff" opacity=".18"/>
+      <circle cx="240" cy="80" r="34" fill="#fff" opacity=".18"/>
+      <circle cx="285" cy="110" r="16" fill="#fff" opacity=".12"/>
+      <text x="160" y="88" text-anchor="middle" font-size="52" font-family="system-ui">🥤🧃☕</text>
+      <text x="160" y="120" text-anchor="middle" font-size="13" font-family="system-ui" fill="#ffffff" opacity=".9">Daily drink sales & stock</text>
+    </svg>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <h3>🧊 Drinks In Stock</h3>
+    <div class="row" style="margin-bottom:8px">
+      <div class="field" style="flex:1;margin-bottom:0"><input id="newStockName" placeholder="Add drink name to stock"/></div>
+      <button class="btn btn-secondary btn-sm" id="addStockBtn" style="width:auto">＋ Add</button>
+    </div>
+    <div>
+      ${DATA.stockDrinks.length?DATA.stockDrinks.map(n=>`<span class="chip blue" style="display:inline-flex;align-items:center;gap:4px;margin:2px 4px 2px 0">${drinkEmoji(n)} ${esc(n)}${isAdmin()?` <button data-del-stock="${esc(n)}" style="background:none;border:none;color:inherit;cursor:pointer;font-weight:700;padding:0;margin:0">✕</button>`:""}</span>`).join(""):`<span style="font-size:12px;color:var(--muted)">No drinks in stock yet. Add one above.</span>`}
+    </div>
+    ${isAdmin()?`<p class="notice" style="margin-top:6px">Tip: ✕ removes a drink from stock (admin only). Users can add names.</p>`:""}
+  </div>
+  <div class="row" style="margin-bottom:10px">
+    <button class="btn btn-primary" id="addDrinkBtn">＋ Add Sale</button>
+  </div>
+  <div class="filterbar">
+    <select id="dFilter">${dates.map(d=>`<option value="${d}" ${d===filter?"selected":""}>${fmtDate(d)}${d===todayISO()?" (today)":""}</option>`).join("")}
+      <option value="all" ${filter==="all"?"selected":""}>All dates</option>
+    </select>
+  </div>
+  <div class="grid2" style="margin-bottom:10px">
+    <div class="stat"><div class="label">Qty (filtered)</div><div class="val">${qty}</div></div>
+    <div class="stat"><div class="label">Revenue (filtered)</div><div class="val">${fmtMoney(total)}</div></div>
+  </div>
+  <div id="drinkList">
+    ${list.length?list.map(drinkItemHTML).join(""):`<div class="empty"><div class="ic">🥤</div>No drink sales for this filter</div>`}
+  </div>`;
+}
+function bindDrinks(){
+  $("#addDrinkBtn").onclick=openDrinkForm;
+  $("#dFilter").onchange=(e)=>{ window._dDateFilter=e.target.value; renderContent(); };
+  $$("[data-edit-drink]").forEach(b=>b.onclick=()=>openDrinkForm(b.dataset.editDrink));
+  $$("[data-del-drink]").forEach(b=>b.onclick=()=>deleteDrink(b.dataset.delDrink));
+  const sb=$("#addStockBtn");
+  if(sb) sb.onclick=()=>{
+    const inp=$("#newStockName");
+    const name=inp.value.trim();
+    if(!name){ toast("Enter a drink name","err"); return; }
+    if(DATA.stockDrinks.some(n=>n.toLowerCase()===name.toLowerCase())){ toast("Already in stock","err"); return; }
+    DATA.stockDrinks.push(name);
+    saveData(DATA);
+    toast("Drink added to stock","ok");
+    renderContent();
+  };
+  $$("[data-del-stock]").forEach(b=>b.onclick=()=>{
+    if(!isAdmin()){ toast("Only admin can remove stock","err"); return; }
+    if(!confirm("Remove this drink from stock? Existing sales remain.")) return;
+    DATA.stockDrinks=DATA.stockDrinks.filter(n=>n!==b.dataset.delStock);
+    saveData(DATA);
+    renderContent();
+  });
+}
+function openDrinkForm(editId=null){
+  const d = editId ? DATA.drinks.find(x=>x.id===editId) : null;
+  openModal(`
+    <button class="close" onclick="closeModal()">×</button>
+    <h2>${d?"Edit Drink Sale":"New Drink Sale"}</h2>
+    <div class="field"><label>Date</label><input type="date" id="df_date" value="${d?d.date:todayISO()}"/></div>
+    <div class="field"><label>Item</label>${DATA.stockDrinks.length?`<select id="df_item">${DATA.stockDrinks.map(i=>`<option ${d&&d.item===i?"selected":""}>${esc(i)}</option>`).join("")}</select>`:`<input id="df_item" value="${d?esc(d.item):""}" placeholder="Drink name"/>`}</div>
+    <div class="field"><label>Quantity</label><input type="number" id="df_qty" value="${d?d.qty:""}" placeholder="0" min="1"/></div>
+    <div class="field"><label>Price per unit (₹)</label><input type="number" id="df_price" value="${d?d.price:""}" placeholder="0"/></div>
+    <div class="field"><label>Total (₹)</label><input type="number" id="df_total" value="${d?d.total:""}" placeholder="auto" readonly style="opacity:.7"/></div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="df_save">Save</button>
+    </div>
+  `);
+  const calc=()=>{
+    const q=Number($("#df_qty").value)||0, p=Number($("#df_price").value)||0;
+    $("#df_total").value=(q*p).toFixed(2);
+  };
+  $("#df_qty").oninput=calc; $("#df_price").oninput=calc; calc();
+  $("#df_save").onclick=()=>{
+    const rec={
+      date:$("#df_date").value,
+      item:$("#df_item").value,
+      qty:Number($("#df_qty").value)||0,
+      price:Number($("#df_price").value)||0,
+      total:Number($("#df_total").value)||0,
+    };
+    if(!rec.date||rec.qty<=0){ toast("Date and positive quantity required","err"); return; }
+    if(rec.price<0) rec.price=0;
+    rec.total = rec.qty*rec.price;
+    if(d){
+      if(!isAdmin()){ toast("Only admin can edit","err"); return; }
+      Object.assign(d,rec); d.updatedAt=Date.now();
+      toast("Sale updated","ok");
+    } else {
+      DATA.drinks.push({id:uid("d"),...rec,createdBy:CURRENT_USER.id,createdByName:CURRENT_USER.name,createdByUsername:CURRENT_USER.username,createdAt:Date.now()});
+      toast("Sale added","ok");
+    }
+    saveData(DATA);
+    closeModal();
+    renderContent();
+  };
+}
+function deleteDrink(id){
+  if(!isAdmin()){ toast("Only admin can delete","err"); return; }
+  if(!confirm("Delete this sale record?")) return;
+  DATA.drinks=DATA.drinks.filter(d=>d.id!==id);
+  saveData(DATA);
+  toast("Sale deleted","ok");
+  renderContent();
+}
+
+// ---------- Manage (admin) ----------
+function manageHTML(){
+  if(!isAdmin()) return `<div class="empty"><div class="ic">🔒</div>Access denied</div>`;
+  const userRows = DATA.users.map(u=>`
+    <div class="item">
+      <div class="title">${esc(u.name)} <span class="chip ${u.role==="admin"?"warn":"blue"}">${esc(u.role)}</span></div>
+      <div class="meta">username: ${esc(u.username)}</div>
+      <div class="actions">
+        <button class="btn btn-secondary btn-sm" data-reset-pw="${u.id}">🔑 Reset PW</button>
+        ${u.id!==CURRENT_USER.id?`<button class="btn btn-danger btn-sm" data-del-user="${u.id}">🗑 Delete</button>`:""}
+      </div>
+    </div>`).join("");
+  const totalRevenue = DATA.drinks.reduce((a,d)=>a+d.total,0);
+  const totalBookingsAmt = DATA.bookings.reduce((a,b)=>a+(b.amount||0),0);
+  return `
+  <div class="card">
+    <h3>📊 Summary</h3>
+    <div class="grid2">
+      <div class="stat"><div class="label">Bookings</div><div class="val">${DATA.bookings.length}</div><div class="sub">${fmtMoney(totalBookingsAmt)}</div></div>
+      <div class="stat"><div class="label">Drink Sales</div><div class="val">${DATA.drinks.length}</div><div class="sub">${fmtMoney(totalRevenue)}</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>👥 Accounts</h3>
+    ${userRows}
+    <button class="btn btn-secondary" id="addUserBtn" style="margin-top:8px">＋ Add Account</button>
+  </div>
+  <div class="card">
+    <h3>💾 Data</h3>
+    <div class="row">
+      <button class="btn btn-secondary" id="exportBtn">⬇ Export JSON</button>
+      <button class="btn btn-warn" id="clearDataBtn">🧹 Clear All Data</button>
+    </div>
+    <p class="notice" style="margin-top:8px">Export downloads a backup of all bookings, sales and accounts.</p>
+  </div>`;
+}
+function bindManage(){
+  $("#addUserBtn").onclick=openUserForm;
+  $("#exportBtn").onclick=exportData;
+  $("#clearDataBtn").onclick=()=>{
+    if(!confirm("This will delete ALL bookings and drink sales. Accounts kept. Continue?")) return;
+    DATA.bookings=[]; DATA.drinks=[]; saveData(DATA); toast("Data cleared","ok"); renderContent();
+  };
+  $$("[data-reset-pw]").forEach(b=>b.onclick=()=>resetPw(b.dataset.resetPw));
+  $$("[data-del-user]").forEach(b=>b.onclick=()=>deleteUser(b.dataset.delUser));
+}
+function openUserForm(){
+  openModal(`
+    <button class="close" onclick="closeModal()">×</button>
+    <h2>New Account</h2>
+    <div class="field"><label>Name</label><input id="uf_name" placeholder="Full name"/></div>
+    <div class="field"><label>Username</label><input id="uf_user" placeholder="username"/></div>
+    <div class="field"><label>Password</label><input id="uf_pw" placeholder="password"/></div>
+    <div class="field"><label>Role</label><select id="uf_role"><option value="user">user</option><option value="admin">admin</option></select></div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="uf_save">Create</button>
+    </div>
+  `);
+  $("#uf_save").onclick=()=>{
+    const name=$("#uf_name").value.trim();
+    const username=$("#uf_user").value.trim().toLowerCase();
+    const pw=$("#uf_pw").value;
+    const role=$("#uf_role").value;
+    if(!name||!username||!pw){ toast("All fields required","err"); return; }
+    if(DATA.users.some(u=>u.username.toLowerCase()===username)){ toast("Username taken","err"); return; }
+    if(passwordInUse(pw)){ toast("That password is already used by another account","err"); return; }
+    DATA.users.push({id:uid("u"),username,password:pw,name,role});
+    saveData(DATA);
+    toast("Account created","ok");
+    closeModal(); renderContent();
+  };
+}
+function resetPw(id){
+  const u=DATA.users.find(x=>x.id===id);
+  const np=prompt("New password for "+u.username+":");
+  if(!np) return;
+  if(passwordInUse(np,u.id)){ toast("That password is already used by another account","err"); return; }
+  u.password=np; saveData(DATA); toast("Password updated","ok");
+}
+function deleteUser(id){
+  if(!confirm("Delete this account? Their records stay.")) return;
+  DATA.users=DATA.users.filter(u=>u.id!==id);
+  saveData(DATA); renderContent(); toast("Account deleted","ok");
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="cricket-turf-backup.json"; a.click();
+  URL.revokeObjectURL(url);
+  toast("Export downloaded","ok");
+}
+
+function openChangePasswordForm(){
+  const u=DATA.users.find(x=>x.id===CURRENT_USER.id);
+  openModal(`
+    <button class="close" onclick="closeModal()">×</button>
+    <h2>Change Password</h2>
+    <div class="field"><label>Current password</label><input type="password" id="cp_cur" placeholder="current password"/></div>
+    <div class="field"><label>New password</label><input type="password" id="cp_new" placeholder="new password"/></div>
+    <div class="field"><label>Confirm new password</label><input type="password" id="cp_conf" placeholder="confirm"/></div>
+    <p class="notice">Passwords must be unique across accounts.</p>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="cp_save">Update</button>
+    </div>
+  `);
+  $("#cp_save").onclick=()=>{
+    const cur=$("#cp_cur").value;
+    const nw=$("#cp_new").value;
+    const conf=$("#cp_conf").value;
+    if(cur!==u.password){ toast("Current password incorrect","err"); return; }
+    if(!nw){ toast("New password required","err"); return; }
+    if(nw!==conf){ toast("Passwords do not match","err"); return; }
+    if(nw===cur){ toast("New password must differ","err"); return; }
+    if(passwordInUse(nw,u.id)){ toast("That password is already used by another account","err"); return; }
+    u.password=nw; saveData(DATA); CURRENT_USER=u; toast("Password updated","ok"); closeModal();
+  };
+}
+// ---------- Boot ----------
+function boot(){
+  if(currentView==="manage" && !isAdmin()) currentView="home";
+  render();
+}
+boot();
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js").catch(()=>{}); });
+}
+// Cover / splash screen
+const __cover=document.createElement("div");
+__cover.id="coverScreen";
+__cover.style.cssText="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#081028 0%,#162149 60%,#0b1a3a 100%);color:#f1f5ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;transition:opacity .7s ease";
+__cover.innerHTML='<div style="font-size:84px;filter:drop-shadow(0 6px 18px rgba(124,92,255,.6))">🏏</div><h1 style="margin-top:18px;font-size:26px;font-weight:800;letter-spacing:.4px">Cricket Turf Manager</h1><p style="margin-top:10px;font-size:14px;color:#a5b4fc">Bookings • Drinks • Daily Revenue</p><div style="margin-top:28px;width:120px;height:4px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden"><div style="width:0%;height:100%;background:linear-gradient(90deg,#7c5cff,#22d3ee);animation:coverbar 1.5s ease forwards"></div></div>';
+const __style=document.createElement("style"); __style.textContent="@keyframes coverbar{0%{width:0%}100%{width:100%}}"; document.head.appendChild(__style);
+document.body.appendChild(__cover);
+setTimeout(()=>{__cover.style.opacity="0";setTimeout(()=>__cover.remove(),700);},1800);
+</script>
+</body>
+</html>
